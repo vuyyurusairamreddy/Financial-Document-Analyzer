@@ -1,139 +1,124 @@
 ## Importing libraries and files
 from crewai import Task
-
 from agents import financial_analyst, verifier, investment_advisor, risk_assessor
-from tools import search_tool, FinancialDocumentTool, InvestmentTool, RiskTool
+#from agents import financial_analyst, verifier, investment_advisor, risk_assessor, tax_analyst
+from tools import search_tool, read_data_tool, analyze_investment_tool, create_risk_assessment_tool
 
 ## Creating a task to analyze financial documents
 analyze_financial_document = Task(
     description="""
-    Analyze the financial document thoroughly to address the user's query: {query}
+    Analyze the financial document at {file_path} thoroughly to address the user's query: {query}
     
-    Your analysis should include:
-    1. Extract and read the financial document content
-    2. Identify key financial metrics and indicators
-    3. Analyze trends, patterns, and significant changes
-    4. Provide insights relevant to the user's specific query
-    5. Highlight any areas of concern or opportunity
-    6. Ensure all analysis is based on actual document content
-    
-    Be precise, factual, and base all conclusions on evidence from the document.
-    If certain information is not available in the document, clearly state this limitation.
+    Steps:
+    1. Use the Financial Document Reader tool to read the document at {file_path}
+    2. Identify key financial metrics (revenue, profit, cash flow, debt, etc.)
+    3. Analyze trends and patterns in the data
+    4. Provide actionable insights
+    5. Highlight risks and opportunities
     """,
-
     expected_output="""
-    A comprehensive financial analysis report containing:
-    - Executive Summary of key findings
-    - Detailed analysis of financial metrics relevant to the query  
-    - Identification of trends and patterns in the data
-    - Specific insights addressing the user's question
-    - Risk factors and opportunities identified
-    - Clear conclusions based on document evidence
-    - Any limitations or assumptions made in the analysis
-    
-    Format the output in clear sections with proper headers and bullet points where appropriate.
+    Comprehensive financial analysis report including:
+    - Executive summary of key findings
+    - Analysis of important financial metrics and trends
+    - Insights and strategic recommendations
+    - Identified limitations or data gaps
     """,
-
-    agent=financial_analyst,
-    tools=[FinancialDocumentTool.read_data_tool, search_tool],
-    async_execution=False,
+    agent=financial_analyst,#Assigns a specific agent to perform this task
+    async_execution=False,#Tasks run one after another (sequential), not in parallel
 )
 
 ## Creating a document verification task
 verification = Task(
     description="""
-    Verify the financial document for:
-    1. Document accessibility and readability
-    2. Presence of key financial information
-    3. Data quality and completeness
-    4. Standard financial reporting elements
-    5. Any formatting or data extraction issues
+    Verify the financial document at {file_path} for accessibility, completeness, and data quality.
     
-    Provide a clear assessment of whether the document contains sufficient 
-    financial information for meaningful analysis.
+    Steps:
+    1. Use the Financial Document Reader tool to access the document at {file_path}
+    2. Check if the document can be read successfully
+    3. Verify the document contains financial data
+    4. Identify any data quality issues
+    5. Confirm the document is suitable for analysis
     """,
-
     expected_output="""
-    Document verification report including:
-    - File accessibility status
-    - Content extraction success/issues
-    - Financial information assessment
-    - Data quality evaluation  
-    - Recommendations for analysis feasibility
-    - List of key financial elements found
-    
-    Clear pass/fail status for document verification.
+    Verification report including:
+    - Document accessibility status (pass/fail)
+    - Data completeness assessment
+    - List of any issues or concerns found
+    - Recommendation on whether to proceed with analysis
     """,
-
     agent=verifier,
-    tools=[FinancialDocumentTool.read_data_tool],
-    async_execution=False
+    async_execution=False,
 )
 
 ## Creating an investment analysis task
 investment_analysis = Task(
     description="""
-    Based on the financial document analysis, provide investment insights for: {query}
+    Provide investment insights based on the financial document at {file_path} for the query: {query}
     
-    Your analysis should cover:
-    1. Investment attractiveness based on financial performance
-    2. Key financial ratios and their implications
-    3. Growth prospects and market position
-    4. Competitive advantages or disadvantages
-    5. Investment risks and mitigation strategies
-    6. Suitable investor profiles for this investment
-    
-    Provide balanced, evidence-based investment perspective with appropriate disclaimers.
+    Steps:
+    1. Use the Financial Document Reader tool to read the document at {file_path}
+    2. Use the Investment Analysis Tool to evaluate investment potential
+    3. Use web search if needed to gather market context
+    4. Assess investment opportunities and risks
+    5. Provide actionable investment recommendations
     """,
-
     expected_output="""
-    Investment analysis report containing:
-    - Investment thesis summary
-    - Key financial metrics analysis
-    - Strengths and weaknesses assessment
-    - Risk-return profile evaluation
-    - Target investor considerations
-    - Investment recommendation with rationale
+    Investment analysis report including:
+    - Investment thesis and key opportunities
+    - Risk-return profile assessment
+    - Specific investment recommendations
     - Important disclaimers about investment risks
-    
-    Include specific data points from the document to support recommendations.
+    - Recommendation to consult financial professionals
     """,
-
     agent=investment_advisor,
-    tools=[FinancialDocumentTool.read_data_tool, InvestmentTool.analyze_investment_tool, search_tool],
     async_execution=False,
 )
 
 ## Creating a risk assessment task
 risk_assessment = Task(
     description="""
-    Conduct comprehensive risk assessment based on the financial document for: {query}
+    Conduct comprehensive risk assessment based on the financial document at {file_path} for the query: {query}
     
-    Analyze the following risk categories:
-    1. Financial risks (liquidity, credit, market)
-    2. Operational risks
-    3. Strategic and competitive risks  
-    4. Regulatory and compliance risks
-    5. Industry and market risks
-    6. Risk mitigation measures in place
-    
-    Provide quantitative analysis where possible and qualitative assessment for other factors.
+    Steps:
+    1. Use the Financial Document Reader tool to read the document at {file_path}
+    2. Use the Risk Assessment Tool to identify and categorize risks
+    3. Use web search if needed for industry risk benchmarks
+    4. Evaluate risk severity and likelihood
+    5. Recommend risk mitigation strategies
     """,
-
     expected_output="""
     Risk assessment report including:
-    - Executive risk summary
-    - Detailed risk category analysis
-    - Risk severity and probability assessment
-    - Risk interdependencies and correlations
-    - Existing risk mitigation strategies
-    - Recommended additional risk controls
-    - Risk monitoring recommendations
-    
-    Present risks in order of priority with supporting evidence from the document.
+    - Comprehensive risk identification and categorization
+    - Risk severity levels (High/Medium/Low)
+    - Detailed risk analysis for each identified risk
+    - Mitigation strategies and recommendations
+    - Monitoring and control recommendations
     """,
+    agent=risk_assessor,
+    async_execution=False,
+)
 
-    agent=risk_assessor,  
-    tools=[FinancialDocumentTool.read_data_tool, RiskTool.create_risk_assessment_tool, search_tool],
+## Creating a tax analysis task
+tax_analysis = Task(
+    description="""
+    Conduct comprehensive tax analysis based on the financial document at {file_path} for the query: {query}
+    
+    Steps:
+    1. Use the Financial Document Reader tool to read the document at {file_path}
+    2. Identify taxable income, deductions, and credits
+    3. Use web search if needed to verify current tax rates and regulations
+    4. Calculate estimated tax liabilities
+    5. Provide tax optimization strategies and recommendations
+    """,
+    expected_output="""
+    Tax analysis report including:
+    - Summary of taxable income and tax liabilities
+    - Identified deductions and tax credits
+    - Current applicable tax rates (federal, state, international)
+    - Tax optimization strategies
+    - Compliance recommendations
+    - Important disclaimers about consulting tax professionals
+    """,
+    #agent=tax_analyst,
     async_execution=False,
 )

@@ -322,3 +322,7 @@ For issues and questions:
 -  Added API documentation
 -  Enhanced file validation
 -  Professional agent personas
+#http://localhost:8000/docs
+POST /analyze - Main analysis endpoint (upload PDF)
+POST /analyze-sample - Analyze default sample.pdf
+POST /analyze-async - Queue-based async processing (bonus feature)
